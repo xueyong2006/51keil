@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\控制LED显示二进制" 
+PRINT(".\Listings\控制LED显示二进制.m51") RAMSIZE(256) 
