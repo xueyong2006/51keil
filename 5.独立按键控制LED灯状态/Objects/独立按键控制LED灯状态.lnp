@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\独立按键控制LED灯状态" 
+PRINT(".\Listings\独立按键控制LED灯状态.m51") RAMSIZE(256) 
