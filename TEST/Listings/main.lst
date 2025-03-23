@@ -1,0 +1,301 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              03/19/2025 19:10:53 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.ls
+                    -t) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "Buzzer.h"
+   3          #include "Key.h"
+   4          #include "Nixie.h"
+   5          #include "Timer0.h"
+   6          #include "XPT2046.h"
+   7          #include "Timer0.h"
+   8          
+   9          //sbit Led_A_Red=P2^0;
+  10          //sbit Led_A_Yellow=P2^1;
+  11          //sbit Led_A_Green=P2^5;
+  12          //sbit Led_B_Red=P2^6;
+  13          //sbit Led_B_Yellow=P1^4;
+  14          //sbit Led_B_Green=P2^7;
+  15          sbit Led_A_Red=P1^1;
+  16          sbit Led_A_Yellow=P1^2;
+  17          sbit Led_A_Green=P1^3;
+  18          sbit Led_B_Red=P1^4;
+  19          sbit Led_B_Yellow=P1^5;
+  20          sbit Led_B_Green=P1^6;
+  21          sbit Buzzer=P2^5;
+  22          
+  23          unsigned char mode=0;
+  24          unsigned char Light_Yellow=1;
+  25          unsigned char Buzzer_On;
+  26          unsigned char ATime=30;
+  27          unsigned char BTime=30;
+  28          unsigned char ADValue;
+  29          unsigned char KeyNum;
+  30          
+  31          
+  32          void Nixie_Clear()
+  33          {
+  34   1         Nixie_SetBuf(1,10);
+  35   1          Nixie_SetBuf(2,10);
+  36   1          Nixie_SetBuf(7,10);
+  37   1          Nixie_SetBuf(8,10);
+  38   1      }
+  39          
+  40          void Show_Led_Time() 
+  41          {
+  42   1          if (mode == 5)// 夜间模式清空显示
+  43   1         { 
+  44   2              Nixie_Clear();
+  45   2          } 
+  46   1        else // 正常模式显示时间
+  47   1        { 
+  48   2              Nixie_SetBuf(7, ATime / 10);
+  49   2              Nixie_SetBuf(8, ATime % 10);
+  50   2              Nixie_SetBuf(1, BTime / 10);
+  51   2              Nixie_SetBuf(2, BTime % 10);
+  52   2          }
+  53   1      }
+  54          
+C51 COMPILER V9.60.7.0   MAIN                                                              03/19/2025 19:10:53 PAGE 2   
+
+  55          void Traffic_Lignt()
+  56          {
+  57   1        if(KeyNum == 1) {mode = 4;ATime=10;BTime=10;}
+  58   1        if(KeyNum == 2) mode = 5;
+  59   1        switch(mode)
+  60   1        {
+  61   2          case 0:        //A green, B red
+  62   2            Led_A_Red=0;
+  63   2            Led_A_Yellow=0;
+  64   2            Led_A_Green=1;
+  65   2            Led_B_Red=1;
+  66   2            Led_B_Yellow=0;
+  67   2            Led_B_Green=0;
+  68   2            Show_Led_Time();
+  69   2            break;
+  70   2          case 1:        //A yellow, B red
+  71   2            
+  72   2            Led_A_Yellow=Light_Yellow;
+  73   2            Led_A_Green=0;
+  74   2            
+  75   2            Show_Led_Time();
+  76   2            break;
+  77   2          case 2:        //A red, B green
+  78   2            Led_A_Red=1;
+  79   2            Led_A_Yellow=0;
+  80   2            
+  81   2            Led_B_Red=0;
+  82   2            
+  83   2            Led_B_Green=1;
+  84   2            Show_Led_Time();
+  85   2            break;
+  86   2          case 3:        //A red, B yellow
+  87   2            
+  88   2            
+  89   2            Led_B_Yellow=Light_Yellow;
+  90   2            Led_B_Green=0;
+  91   2            Show_Led_Time();
+  92   2            break;
+  93   2          case 4:        //A red, B red
+  94   2            Led_A_Red=1;
+  95   2            Led_A_Yellow=0;
+  96   2            Led_A_Green=0;
+  97   2            Led_B_Red=1;
+  98   2            Led_B_Yellow=0;
+  99   2            Led_B_Green=0;
+ 100   2            Show_Led_Time();
+ 101   2            break;
+ 102   2          case 5:    //A,B yellow night mode
+ 103   2            Led_A_Red=0;
+ 104   2            Led_A_Yellow=Light_Yellow;
+ 105   2            Led_A_Green=0;
+ 106   2            Led_B_Red=0;
+ 107   2            Led_B_Yellow=Light_Yellow;
+ 108   2            Led_B_Green=0;
+ 109   2            Nixie_Clear();
+ 110   2            break;
+ 111   2        }
+ 112   1      }
+ 113          
+ 114          
+ 115          
+ 116          void main()
+C51 COMPILER V9.60.7.0   MAIN                                                              03/19/2025 19:10:53 PAGE 3   
+
+ 117          {
+ 118   1        Timer0Init();
+ 119   1        while(1)
+ 120   1        {
+ 121   2          
+ 122   2          KeyNum=Key();
+ 123   2          Traffic_Lignt();
+ 124   2      
+ 125   2        }
+ 126   1        
+ 127   1      
+ 128   1        
+ 129   1      }
+ 130          
+ 131          void Timer0_Routine(void) interrupt 1 
+ 132          {
+ 133   1          static unsigned int T0Count0, T0Count1, T0Count2, T0Count3,T0Count4, T0CountMode;
+ 134   1          static bit NightMode = 0;
+ 135   1      
+ 136   1          TL0 = 0x66;     // 定时器重载值（假设中断周期为1ms）
+ 137   1          TH0 = 0xFC;
+ 138   1      
+ 139   1          // 公共计数器
+ 140   1          T0Count0++;
+ 141   1          T0Count1++;
+ 142   1          T0Count2++;
+ 143   1          T0Count3++;
+ 144   1        T0Count4++;
+ 145   1          T0CountMode++;
+ 146   1      
+ 147   1          // 数码管扫描
+ 148   1          if(T0Count0 >= 2) 
+ 149   1          {
+ 150   2              T0Count0 = 0;
+ 151   2              Nixie_Loop();
+ 152   2          }
+ 153   1      
+ 154   1          // 检测光照进入夜间模式
+ 155   1          if(T0Count1 >= 100) // 1ms秒检测一次光照
+ 156   1          { 
+ 157   2              T0Count1 = 0;
+ 158   2              ADValue = XPT2046_ReadAD(XPT2046_XP);
+ 159   2              if(ADValue < 100) {NightMode = 1;}
+ 160   2              else {NightMode = 0;}
+ 161   2              if(NightMode && mode != 5) 
+ 162   2          {
+ 163   3                  mode = 5;          // 进入夜间模式
+ 164   3                  T0CountMode = 0;   // 重置模式计时器
+ 165   3              } 
+ 166   2              else if(!NightMode && mode == 5) 
+ 167   2              {
+ 168   3                  mode = 0;          // 退出夜间模式
+ 169   3                  T0CountMode = 0;   // 重置模式计时器
+ 170   3                  ATime = 31;        // 恢复默认倒计时初值
+ 171   3                  BTime = 31;
+ 172   3              }
+ 173   2          }
+ 174   1      
+ 175   1          // 按键扫描
+ 176   1          if(T0Count2 >= 20) // 20ms扫描一次按键
+ 177   1          { 
+ 178   2              T0Count2 = 0;
+C51 COMPILER V9.60.7.0   MAIN                                                              03/19/2025 19:10:53 PAGE 4   
+
+ 179   2              Key_Loop();
+ 180   2          }
+ 181   1      
+ 182   1          // 黄灯闪烁控制
+ 183   1          // 在黄灯闪烁控制的代码段：
+ 184   1          if (T0Count3 >= 500)
+ 185   1          {
+ 186   2              T0Count3 = 0;
+ 187   2              
+ 188   2              
+ 189   2              if (mode == 1 || mode == 3 || mode ==5)
+ 190   2                  Buzzer_Time(100); // 每次闪烁触发一次短鸣
+ 191   2              
+ 192   2          }
+ 193   1            if(T0Count4>=500)
+ 194   1            {
+ 195   2              Light_Yellow=!Light_Yellow;
+ 196   2            }
+ 197   1      
+ 198   1          // 模式自动切换逻辑（仅在非夜间模式生效）
+ 199   1          if(!NightMode) 
+ 200   1          {
+ 201   2              switch(mode) 
+ 202   2              {
+ 203   3                  case 0: // A绿-B红，持续30秒
+ 204   3                      if(T0CountMode >= 31000) // 30秒后切到mode1
+ 205   3              { 
+ 206   4                          mode = 1;
+ 207   4                          T0CountMode = 0;
+ 208   4                          ATime = 4;  // 黄灯倒计时初值3秒
+ 209   4                          BTime = 4;
+ 210   4                      }
+ 211   3                      break;
+ 212   3                  case 1: // A黄-B红，持续3秒
+ 213   3                      if(T0CountMode >= 4000) // 3秒后切到mode2
+ 214   3              { 
+ 215   4                          mode = 2;
+ 216   4                          T0CountMode = 0;
+ 217   4                          ATime = 31; // 红灯倒计时初值30秒
+ 218   4                          BTime = 31;
+ 219   4                      }
+ 220   3                      break;
+ 221   3                  case 2: // A红-B绿，持续30秒
+ 222   3                      if(T0CountMode >= 31000) // 30秒后切到mode3
+ 223   3              { 
+ 224   4                          mode = 3;
+ 225   4                          T0CountMode = 0;
+ 226   4                          ATime = 4;  // 黄灯倒计时初值3秒
+ 227   4                          BTime = 4;
+ 228   4                      }
+ 229   3                      break;
+ 230   3                  case 3: // A红-B黄，持续3秒
+ 231   3                      if(T0CountMode >= 4000) // 3秒后切回mode0
+ 232   3              { 
+ 233   4                          mode = 0;
+ 234   4                          T0CountMode = 0;
+ 235   4                          ATime = 31; // 绿灯倒计时初值30秒
+ 236   4                          BTime = 31;
+ 237   4                      }
+ 238   3                      break;
+ 239   3            case 4:
+ 240   3              if(T0CountMode >= 13000 ) // 10秒后切到mode1
+C51 COMPILER V9.60.7.0   MAIN                                                              03/19/2025 19:10:53 PAGE 5   
+
+ 241   3              {
+ 242   4                mode = 0;
+ 243   4                T0CountMode = 0;
+ 244   4                ATime = 31;  
+ 245   4                BTime = 31;
+ 246   4              }
+ 247   3              }
+ 248   2      
+ 249   2              // 更新倒计时（每秒递减）
+ 250   2              if(T0CountMode % 1000 == 0)// 每秒更新一次
+ 251   2              { 
+ 252   3                  switch(mode) {
+ 253   4                      case 0:
+ 254   4                      case 2:
+ 255   4                          ATime--;
+ 256   4                          BTime--;
+ 257   4                          break;
+ 258   4                      case 1:
+ 259   4                      case 3:
+ 260   4                          ATime--;
+ 261   4                          BTime--;
+ 262   4                          break;
+ 263   4                      case 4:
+ 264   4                        ATime--;
+ 265   4                        BTime--;
+ 266   4                  }
+ 267   3              }
+ 268   2          }
+ 269   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    693    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     19    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
